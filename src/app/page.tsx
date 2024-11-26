@@ -1,101 +1,203 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Modal from "./pages/components/Modal";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+interface Post {
+  id: number;
+  title: string;
+}
+
+const PostsPage = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [fontSize, setFontSize] = useState("text-base");
+  const [fontFamily, setFontFamily] = useState("font-sans");
+  const router = useRouter();
+
+  // Fetch posts from the API
+  useEffect(() => {
+    fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=5`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPosts(data);
+        setTotalPages(Math.ceil(100 / 5)); // Mock total of 100 posts
+      });
+  }, [page]);
+
+  // Add a new post (mocked for this example)
+  const addPost = (title: string) => {
+    const newPost: Post = {
+      id: posts.length + 1, // Mock ID generation
+      title,
+    };
+    setPosts([newPost, ...posts]);
+  };
+
+  // Update post in the local state
+  const updatePost = (updatedPost: Post) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === updatedPost.id ? updatedPost : post
+      )
+    );
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Handle theme change
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === "dark");
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode ? "dark" : "light";
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem("theme", newTheme);
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="container mx-auto p-6">
+      <h1 className="text-4xl font-extrabold text-center mb-8 text-blue-600">Posts</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      {/* Theme Toggle Button */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={toggleTheme}
+          className="bg-gray-600 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          {isDarkMode ? "Light Mode" : "Dark Mode"}
+        </button>
+      </div>
+
+      {/* Font Style Customization Section */}
+      <div className="flex justify-center gap-4 mb-8">
+        <select
+          value={fontSize}
+          onChange={(e) => setFontSize(e.target.value)}
+          className="p-2 rounded-md border"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <option value="text-sm">Small</option>
+          <option value="text-base">Medium</option>
+          <option value="text-lg">Large</option>
+          <option value="text-xl">Extra Large</option>
+        </select>
+
+        <select
+          value={fontFamily}
+          onChange={(e) => setFontFamily(e.target.value)}
+          className="p-2 rounded-md border"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <option value="font-sans">Sans Serif</option>
+          <option value="font-serif">Serif</option>
+          <option value="font-mono">Mono</option>
+        </select>
+      </div>
+
+      {/* Create Post Button */}
+      <div className="flex justify-center mb-8">
+        <button
+          className="bg-blue-600 text-white py-3 px-8 rounded-md text-xl shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition transform hover:scale-105"
+          onClick={() => setModalOpen(true)}
+        >
+          Create New Post
+        </button>
+      </div>
+
+      {/* Posts Table */}
+      <div className="overflow-x-auto bg-white rounded-lg shadow-lg dark:bg-gray-800">
+        <table className="min-w-full text-left table-auto">
+          <thead>
+            <tr className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
+              <th className="px-6 py-4 border-b">ID</th>
+              <th className="px-6 py-4 border-b">Title</th>
+              <th className="px-6 py-4 border-b">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map((post) => (
+              <tr
+                key={post.id}
+                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-300"
+              >
+                <td
+                  className={`px-6 py-4 border-b ${fontSize} ${fontFamily} ${
+                    isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  {post.id}
+                </td>
+                <td
+                  className={`px-6 py-4 border-b ${fontSize} ${fontFamily} ${
+                    isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  {post.title}
+                </td>
+                <td className="px-6 py-4 border-b">
+                  <Link
+                    href={`/post/${post.id}`}
+                    className="text-blue-500 hover:text-blue-700 focus:ring-2 focus:ring-blue-300 transition"
+                  >
+                    View
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center items-center gap-4 mt-6">
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+          className={`py-2 px-4 rounded-md text-lg ${
+            page === 1
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
+        >
+          Previous
+        </button>
+        <span className="text-lg font-semibold">{`Page ${page} of ${totalPages}`}</span>
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages}
+          className={`py-2 px-4 rounded-md text-lg ${
+            page === totalPages
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
+        >
+          Next
+        </button>
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <Modal setModalOpen={setModalOpen} addPost={addPost} />
+      )}
     </div>
   );
-}
+};
+
+export default PostsPage;
