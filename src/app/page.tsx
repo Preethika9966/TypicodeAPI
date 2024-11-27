@@ -17,7 +17,7 @@ const PostsPage = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState("text-base");
   const [fontFamily, setFontFamily] = useState("font-sans");
-  const router = useRouter();
+  //const router = useRouter();
 
   // Fetch posts from the API
   useEffect(() => {
@@ -39,13 +39,13 @@ const PostsPage = () => {
   };
 
   // Update post in the local state
-  const updatePost = (updatedPost: Post) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === updatedPost.id ? updatedPost : post
-      )
-    );
-  };
+ // const updatePost = (updatedPost: Post) => {
+   // setPosts((prevPosts) =>
+    //  prevPosts.map((post) =>
+     //   post.id === updatedPost.id ? updatedPost : post
+    //  )
+  //  );
+//  };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
