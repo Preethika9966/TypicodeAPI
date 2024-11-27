@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Modal from "./pages/components/Modal";
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 
 interface Post {
   id: number;
